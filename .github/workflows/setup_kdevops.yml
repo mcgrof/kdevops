@@ -1,0 +1,116 @@
+name: Setup kdevops
+
+on:
+  workflow_call:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - distro_container: debian:testing
+            name: Debian testing
+            packager: apt-get install -y
+            qemu_group: libvirt-qemu
+            disable_apparmor: true
+            disable_selinux: false
+            nonroot: qa
+            pkg_deps: |
+              ansible
+              bridge-utils
+              qemu-kvm
+              libvirt-daemon
+              libvirt-clients
+              libvirt-daemon-system
+              virtinst
+              libguestfs-tools
+              wait-for-it
+              whois
+              sshpass
+              virt-manager
+              iproute2
+    container:
+      image: ${{ matrix.distro_container }}
+      options: --user root # Run container as root initially
+      env:
+        HOME: /home/${{ matrix.nonroot }}
+
+    steps:
+      - name: Create non-root user and set permissions
+        run: |
+          groupadd -g 1001 ${{ matrix.nonroot }}
+          useradd -u 1001 -g 1001 -m ${{ matrix.nonroot }}
+          mkdir -p /home/${{ matrix.nonroot }}
+          chown -R ${{ matrix.nonroot }}:${{ matrix.nonroot }} /home/${{ matrix.nonroot }}
+
+      - name: Check and Update sources.list for Debian Testing
+        run: |
+          if [ "${{ matrix.distro_container }}" = "debian:testing" ]; then
+            echo "deb http://deb.debian.org/debian testing main contrib non-free" > /etc/apt/sources.list
+            echo "deb-src http://deb.debian.org/debian testing main contrib non-free" >> /etc/apt/sources.list
+            echo "deb http://deb.debian.org/debian testing-updates main contrib non-free" >> /etc/apt/sources.list
+            echo "deb-src http://deb.debian.org/debian testing-updates main contrib non-free" >> /etc/apt/sources.list
+            echo "deb http://deb.debian.org/debian-security testing-security main contrib non-free" >> /etc/apt/sources.list
+            echo "deb-src http://deb.debian.org/debian-security testing-security main contrib non-free" >> /etc/apt/sources.list
+            apt-get update
+            apt-get install -y sudo
+            echo "${{ matrix.nonroot }} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+          fi
+
+      - name: Switch to non-root user for further steps
+        run: |
+          # Run the rest of the steps as the non-root user
+          su - ${{ matrix.nonroot }} -c "/bin/bash -c 'whoami && echo \$HOME'"
+        shell: bash
+
+      - name: Install kdevops requirements as non-root
+        run: |
+          ${{ matrix.packager }} $(echo '${{ matrix.pkg_deps }}' | tr '\n' ' ')
+
+      - name: Disable AppArmor and SELinux
+        run: |
+          if [ "${{ matrix.disable_apparmor }}" = "true" ]; then
+            sudo systemctl stop apparmor
+            sudo systemctl disable apparmor
+            sudo apt-get remove -y apparmor || true  # For Debian-based systems
+          fi
+
+          if [ "${{ matrix.disable_selinux }}" = "true" ]; then
+            sudo setenforce 0
+            sudo sed -i 's/^SELINUX=enforcing/SELINUX=permissive/' /etc/selinux/config
+          fi
+
+      - name: Enable and start libvirt service
+        run: |
+          sudo systemctl enable --now libvirtd
+          sudo systemctl start libvirtd
+          sudo systemctl enable --now virtlogd
+          sudo systemctl start virtlogd
+
+      - name: Check libvirt service status
+        run: sudo systemctl status libvirtd
+
+      - name: Verify user permissions for libvirt, kvm, and qemu
+        run: |
+          sudo usermod -aG libvirt $USER
+          sudo usermod -aG kvm $USER
+          sudo usermod -aG ${{ matrix.qemu_group }} $USER
+          newgrp libvirt
+          newgrp kvm
+          newgrp ${{ matrix.qemu_group }}
+
+      - name: Check default libvirt network
+        run: |
+          if ! virsh net-info default; then
+            sudo virsh net-define /usr/share/libvirt/networks/default.xml
+            sudo virsh net-start default
+            sudo virsh net-autostart default
+          else
+            echo "Default network is active"
+          fi
+
+      - name: Check KVM modules and capabilities
+        run: |
+          lsmod | grep kvm || echo "KVM module not loaded"
+          grep -E "svm|vmx" /proc/cpuinfo || echo "Hardware virtualization not supported"

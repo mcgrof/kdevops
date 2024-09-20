@@ -1,0 +1,43 @@
+name: Use kdevops to build fstests
+
+on:
+  workflow_dispatch: # Allows this workflow to be triggered manually
+
+jobs:
+  setup-kdevops:
+    uses: ./.github/workflows/setup_kdevops.yml # Calls the reusable workflow
+    secrets: inherit # Inherit secrets from the calling workflow
+
+  run-fstests:
+    needs: setup-kdevops # This job depends on the successful completion of the setup-kdevops job
+    runs-on: ubuntu-latest
+    container: ${{ matrix.distro_container }}
+    strategy:
+      matrix:
+        include:
+          - distro_container: debian:latest
+          - distro_container: debian:testing
+          - distro_container: fedora:latest
+          - distro_container: fedora:rawhide
+          - distro_container: opensuse:latest
+          - distro_container: opensuse:tumbleweed
+    steps:
+      - name: Configure kdevops
+        run: |
+          cd kdevops
+          make defconfig-xfs_reflink_4k
+
+      - name: Build kdevops
+        run: |
+          cd kdevops
+          make -j 16
+
+      - name: Bring up kdevops environment
+        run: |
+          cd kdevops
+          make bringup
+
+      - name: Make fstests
+        run: |
+          cd kdevops
+          make fstests
