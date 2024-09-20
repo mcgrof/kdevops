@@ -66,7 +66,7 @@ jobs:
 
       - name: Install kdevops requirements as non-root
         run: |
-          ${{ matrix.packager }} $(echo '${{ matrix.pkg_deps }}' | tr '\n' ' ')
+          sudo ${{ matrix.packager }} $(echo '${{ matrix.pkg_deps }}' | tr '\n' ' ')
 
       - name: Disable AppArmor and SELinux
         run: |
