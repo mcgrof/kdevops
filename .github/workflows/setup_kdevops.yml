@@ -64,6 +64,11 @@ jobs:
           su - ${{ matrix.nonroot }} -c "/bin/bash -c 'whoami && echo \$HOME'"
         shell: bash
 
+      - name: Verify user is non root
+        run: |
+          whoami
+          echo $HOME
+
       - name: Install kdevops requirements as non-root
         run: |
           sudo ${{ matrix.packager }} $(echo '${{ matrix.pkg_deps }}' | tr '\n' ' ')
