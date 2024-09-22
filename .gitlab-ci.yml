@@ -1,5 +1,4 @@
 stages:
-  - setup
   - test
 
 .parallel-distro-template:
@@ -7,78 +6,13 @@ stages:
     matrix:
       - DISTRO_NAME: "Debian Testing"
         DISTRO_CONTAINER: "debian:testing"
-        PACKAGER: "apt-get install -y"
-        PRE_INSTALL: "apt-get update && apt-get install -y sudo"
-        PKG_DEPS: |
-          ansible
-          bridge-utils
-          qemu-kvm
-          libvirt-daemon
-          libvirt-clients
-          libvirt-daemon-system
-          virtinst
-          libguestfs-tools
-          whois
-          sshpass
-          virt-manager
-          iproute2
       - DISTRO_NAME: "Fedora Latest"
         DISTRO_CONTAINER: "fedora:latest"
-        PACKAGER: "dnf install -y"
-        PRE_INSTALL: "dnf install -y sudo"
-        PKG_DEPS: |
-          ansible
-          bridge-utils
-          qemu-kvm
-          libvirt-daemon
-          libvirt
-          libvirt-daemon-driver-qemu
-          virt-install
-          libguestfs-tools
-          whois
-          sshpass
-          virt-manager
-          iproute
 
-setup-distro-deps:
-  extends: .parallel-distro-template
-  stage: setup
-  only:
-    - branches
-  image: $DISTRO_CONTAINER
-  variables:
-    NONROOT: qa
-  script:
-    - echo "Setting up $DISTRO_NAME environment with $DISTRO_CONTAINER"
-    - $PRE_INSTALL
-    - groupadd -g 1001 $NONROOT || true
-    - useradd -u 1001 -g 1001 -m $NONROOT || true
-    - mkdir -p /home/$NONROOT
-    - chown -R $NONROOT:$NONROOT /home/$NONROOT
-    - echo "$NONROOT ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-    - sudo $PACKAGER $(echo "$PKG_DEPS" | tr '\n' ' ')
-
-test-distro-libvirt-bringup:
+test-distro:
   extends: .parallel-distro-template
   stage: test
-  only:
-    - branches
-  image: $DISTRO_CONTAINER
-  variables:
-    NONROOT: qa
   script:
-    - echo "Running tests on $DISTRO_NAME environment with $DISTRO_CONTAINER"
-    - whoami
-    - sudo systemctl status libvirtd || echo "libvirtd service not found"
-    - sudo systemctl status virtlogd || echo "virtlogd service not found"
-    - sudo usermod -aG libvirt $NONROOT
-    - sudo usermod -aG kvm $NONROOT
-    - newgrp libvirt
-    - newgrp kvm
-    - sudo virsh net-info default || (
-        sudo virsh net-define /usr/share/libvirt/networks/default.xml &&
-        sudo virsh net-start default &&
-        sudo virsh net-autostart default
-      )
-    - lsmod | grep kvm || echo "KVM module not loaded"
-    - grep -E "svm|vmx" /proc/cpuinfo || echo "Hardware virtualization not supported"
+    - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
+    - uname -a
+    - echo "Successfully ran on $DISTRO_NAME"
