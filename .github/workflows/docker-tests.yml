@@ -29,14 +29,14 @@ jobs:
       - name: Install kdevops dependencies
         run: |
           # Conditional package installation based on the container
-          if [[ "${{ matrix.distro_container }}" == "debian:latest" || "${{ matrix.distro_container }}" == "debian:testing" ]]; then
+          if [ "${{ matrix.distro_container }}" = "debian:testing" ]; then
             echo "Installing packages for Debian"
             apt-get update
             apt-get install -y ansible make gcc ncurses-dev bison flex
-          elif [[ "${{ matrix.distro_container }}" == "fedora:latest" ]]; then
+          elif [ "${{ matrix.distro_container }}" = "fedora:latest" ]; then
             echo "Installing packages for Fedora"
             dnf install -y ansible make gcc ncurses-devel bison flex
-          elif [[ "${{ matrix.distro_container }}" == "opensuse/tumbleweed" ]]; then
+          elif [ "${{ matrix.distro_container }}" = "opensuse/tumbleweed" ]; then
             echo "Installing packages for OpenSUSE"
             zypper refresh
             zypper install -y ansible make gcc ncurses-devel bison flex
