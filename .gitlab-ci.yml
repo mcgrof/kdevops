@@ -44,9 +44,11 @@ stages:
           iproute
 
 # Job to set up the environment for different distributions
-setup-distro:
+setup-distro-deps:
   extends: .parallel-distro-template
   stage: setup
+  rules:
+    - when: always
   image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
@@ -64,9 +66,11 @@ setup-distro:
     - sudo $PACKAGER $(echo "$PKG_DEPS" | tr '\n' ' ')
 
 # Job to run tests in the different distribution setups
-test-distro:
+test-distro-libvirt-bringup:
   extends: .parallel-distro-template
   stage: test
+  rules:
+    - when: always
   image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
