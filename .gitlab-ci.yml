@@ -1,10 +1,7 @@
-# .gitlab-ci.yml
-
 stages:
   - setup
   - test
 
-# Define a hidden job template with a clear matrix setup for each distribution
 .parallel-distro-template:
   parallel:
     matrix:
@@ -43,34 +40,29 @@ stages:
           virt-manager
           iproute
 
-# Job to set up the environment for different distributions
 setup-distro-deps:
   extends: .parallel-distro-template
   stage: setup
-  rules:
-    - when: always
+  only:
+    - branches
   image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
   script:
     - echo "Setting up $DISTRO_NAME environment with $DISTRO_CONTAINER"
-    # Pre-install steps to ensure sudo is available
     - $PRE_INSTALL
-    # Setup user and permissions
     - groupadd -g 1001 $NONROOT || true
     - useradd -u 1001 -g 1001 -m $NONROOT || true
     - mkdir -p /home/$NONROOT
     - chown -R $NONROOT:$NONROOT /home/$NONROOT
     - echo "$NONROOT ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-    # Install packages in one line
     - sudo $PACKAGER $(echo "$PKG_DEPS" | tr '\n' ' ')
 
-# Job to run tests in the different distribution setups
 test-distro-libvirt-bringup:
   extends: .parallel-distro-template
   stage: test
-  rules:
-    - when: always
+  only:
+    - branches
   image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
