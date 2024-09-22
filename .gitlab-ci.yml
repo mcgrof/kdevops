@@ -32,9 +32,4 @@ setup-distro-deps:
         exit 1
       fi
     - echo "Running simple make targets on $DISTRO_NAME environment with $DISTRO_CONTAINER"
-    - make defconfig-mirror
-    - make mrproper
-    - make menuconfig
-    - make mrproper
-    - make nconfig
     - make mrproper

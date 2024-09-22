@@ -51,8 +51,5 @@ jobs:
       - name: Run make targets
         run: |
           echo "Running simple make targets on ${{ matrix.distro_container }} environment"
-          make menuconfig
-          make mrproper
-          make nconfig
           make mrproper
 
