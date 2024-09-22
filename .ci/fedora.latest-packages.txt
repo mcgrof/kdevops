@@ -1,12 +1,6 @@
 ansible
-bridge-utils
-qemu-kvm
-libvirt-daemon
-libvirt
-libvirt-daemon-driver-qemu
-virt-install
-libguestfs-tools
-whois
-sshpass
-virt-manager
-iproute
+make
+gcc
+ncurses-dev
+bison
+flex

@@ -1,6 +1,6 @@
 stages:
   - deps
-  - test-libvirt
+  - simple-docker-tests
 
 .parallel-distro-template:
   parallel:
@@ -17,6 +17,7 @@ stages:
 setup-distro-deps:
   extends: .parallel-distro-template
   stage: deps
+  image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
     PACKAGE_FILE: ".ci/$CI_JOB_IMAGE-packages.txt"
@@ -24,10 +25,18 @@ setup-distro-deps:
     - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
     - uname -a
     - echo "Successfully ran on $DISTRO_NAME"
-    - echo $PACKAGER $(cat $PKG_FILE | tr '\n' ' ')
+    - echo "Going to install kdevops deps"
+    - $PACKAGER $(cat $PKG_FILE | tr '\n' ' ')
 
-test-distro-libvirt-bringup:
+make-defconfig:
   extends: .parallel-distro-template
-  stage: test-libvirt
+  stage: simple-docker-tests
+  image: $DISTRO_CONTAINER
   script:
-    - echo "Running tests on $DISTRO_NAME environment with $DISTRO_CONTAINER"
+    - echo "Running simple make targets on $DISTRO_NAME environment with $DISTRO_CONTAINER"
+    - make defconfig-mirror
+    - make mrproper
+    - make menuconfig
+    - make mrproper
+    - make nconfig
+    - make mrproper
