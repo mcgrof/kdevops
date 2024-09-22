@@ -24,10 +24,10 @@ setup-distro-deps:
     - uname -a
     - echo "Successfully ran on $DISTRO_NAME"
     - echo "Going to install kdevops deps"
-    - echo "Package file: $PKG_FILE"
+    - echo "Package file: $PACKAGE_FILE"
     - echo "Packages:"
-    - $(cat $PKG_FILE | tr '\n' ' ')
-    - $PACKAGER $(cat $PKG_FILE | tr '\n' ' ')
+    - $(cat $PACKAGE_FILE | tr '\n' ' ')
+    - $PACKAGER $(cat $PACKAGE_FILE | tr '\n' ' ')
 
 make-defconfig:
   extends: .parallel-distro-template
