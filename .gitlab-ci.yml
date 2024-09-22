@@ -24,9 +24,10 @@ setup-distro-deps:
     - |
       # Determine kdevops deps based on the distribution
       if [ "$DISTRO_CONTAINER" = "debian:testing" ]; then
+        apt-get update
         $PACKAGER ansible make gcc ncurses-dev bison flex
       elif [ "$DISTRO_CONTAINER" = "fedora:latest" ]; then
-        $PACKAGER ansible make gcc ncurses-dev bison flex
+        $PACKAGER ansible make gcc ncurses-devel bison flex
       else
         echo "Unknown distribution: $DISTRO_CONTAINER"
         exit 1
