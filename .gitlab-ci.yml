@@ -10,7 +10,7 @@ stages:
         PACKAGER: "apt-get install -y"
       - DISTRO_NAME: "Fedora Latest"
         DISTRO_CONTAINER: "fedora:latest"
-        PACKAGER: "dnf install "
+        PACKAGER: "dnf install -y"
 
 setup-distro-deps:
   extends: .parallel-distro-template
@@ -23,10 +23,20 @@ setup-distro-deps:
     - uname -a
     - echo "Successfully ran on $DISTRO_NAME"
     - echo "Going to install kdevops deps"
-    - echo "Package file: .ci/$DISTRO_CONTAINER-packages.txt"
-    - echo "Packages:"
-    - echo $(cat .ci/$DISTRO_CONTAINER-packages.txt | tr '\n' ' ')
-    - $PACKAGER $(cat .ci/$DISTRO_CONTAINER-packages.txt | tr '\n' ' ')
+    - |
+      # Determine package file based on the distribution
+      if [ "$DISTRO_CONTAINER" = "debian:testing" ]; then
+        PKG_FILE=".ci.pkg.debian.testing-packages.txt"
+      elif [ "$DISTRO_CONTAINER" = "fedora:latest" ]; then
+        PKG_FILE=".ci.pkg.fedora.latest-packages.txt"
+      else
+        echo "Unknown distribution: $DISTRO_CONTAINER"
+        exit 1
+      fi
+
+    - echo "Using package file: $PKG_FILE"
+    - cat $PKG_FILE
+    - sudo $PACKAGER $(cat $PKG_FILE | tr '\n' ' ')
 
 make-defconfig:
   extends: .parallel-distro-template
