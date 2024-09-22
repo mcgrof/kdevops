@@ -18,7 +18,7 @@ setup-distro-deps:
   image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
-    PACKAGE_FILE: ".ci/$CI_JOB_IMAGE-packages.txt"
+    PACKAGE_FILE: ".ci/$DISTRO_CONTAINER-packages.txt"
   script:
     - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
     - uname -a
