@@ -12,6 +12,16 @@ stages:
         PKG_DEPS: |
           ansible
           bridge-utils
+          qemu-kvm
+          libvirt-daemon
+          libvirt-clients
+          libvirt-daemon-system
+          virtinst
+          libguestfs-tools
+          whois
+          sshpass
+          virt-manager
+          iproute2
       - DISTRO_NAME: "Fedora Latest"
         DISTRO_CONTAINER: "fedora:latest"
         PACKAGER: "dnf install -y"
