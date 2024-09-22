@@ -16,27 +16,21 @@ setup-distro-deps:
   extends: .parallel-distro-template
   stage: deps
   image: $DISTRO_CONTAINER
-  variables:
-    NONROOT: qa
   script:
     - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
     - uname -a
     - echo "Successfully ran on $DISTRO_NAME"
     - echo "Going to install kdevops deps"
     - |
-      # Determine package file based on the distribution
+      # Determine kdevops deps based on the distribution
       if [ "$DISTRO_CONTAINER" = "debian:testing" ]; then
-        PKG_FILE=".ci.pkg.debian.testing-packages.txt"
+        $PACKAGER ansible make gcc ncurses-dev bison flex
       elif [ "$DISTRO_CONTAINER" = "fedora:latest" ]; then
-        PKG_FILE=".ci.pkg.fedora.latest-packages.txt"
+        $PACKAGER ansible make gcc ncurses-dev bison flex
       else
         echo "Unknown distribution: $DISTRO_CONTAINER"
         exit 1
       fi
-
-    - echo "Using package file: $PKG_FILE"
-    - cat $PKG_FILE
-    - sudo $PACKAGER $(cat $PKG_FILE | tr '\n' ' ')
 
 make-defconfig:
   extends: .parallel-distro-template
