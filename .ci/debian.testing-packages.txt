@@ -1,0 +1,12 @@
+ansible
+bridge-utils
+qemu-kvm
+libvirt-daemon
+libvirt-clients
+libvirt-daemon-system
+virtinst
+libguestfs-tools
+whois
+sshpass
+virt-manager
+iproute2
