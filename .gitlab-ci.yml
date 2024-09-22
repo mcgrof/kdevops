@@ -18,16 +18,15 @@ setup-distro-deps:
   image: $DISTRO_CONTAINER
   variables:
     NONROOT: qa
-    PACKAGE_FILE: ".ci/$DISTRO_CONTAINER-packages.txt"
   script:
     - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
     - uname -a
     - echo "Successfully ran on $DISTRO_NAME"
     - echo "Going to install kdevops deps"
-    - echo "Package file: $PACKAGE_FILE"
+    - echo "Package file: .ci/$DISTRO_CONTAINER-packages.txt"
     - echo "Packages:"
-    - $(cat $PACKAGE_FILE | tr '\n' ' ')
-    - $PACKAGER $(cat $PACKAGE_FILE | tr '\n' ' ')
+    - echo $(cat .ci/$DISTRO_CONTAINER-packages.txt | tr '\n' ' ')
+    - $PACKAGER $(cat .ci/$DISTRO_CONTAINER-packages.txt | tr '\n' ' ')
 
 make-defconfig:
   extends: .parallel-distro-template
