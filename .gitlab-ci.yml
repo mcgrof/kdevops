@@ -1,5 +1,4 @@
 stages:
-  - deps
   - simple-docker-tests
 
 .parallel-distro-template:
@@ -14,7 +13,7 @@ stages:
 
 setup-distro-deps:
   extends: .parallel-distro-template
-  stage: deps
+  stage: simple-docker-tests
   image: $DISTRO_CONTAINER
   script:
     - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
@@ -32,12 +31,6 @@ setup-distro-deps:
         echo "Unknown distribution: $DISTRO_CONTAINER"
         exit 1
       fi
-
-make-defconfig:
-  extends: .parallel-distro-template
-  stage: simple-docker-tests
-  image: $DISTRO_CONTAINER
-  script:
     - echo "Running simple make targets on $DISTRO_NAME environment with $DISTRO_CONTAINER"
     - make defconfig-mirror
     - make mrproper
