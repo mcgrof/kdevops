@@ -1,18 +1,55 @@
 stages:
-  - test
+  - deps
+  - test-libvirt
 
 .parallel-distro-template:
   parallel:
     matrix:
       - DISTRO_NAME: "Debian Testing"
         DISTRO_CONTAINER: "debian:testing"
+        PACKAGER: "apt-get install -y"
+        PRE_INSTALL: "apt-get update && apt-get install -y sudo"
+        PKG_DEPS: |
+          ansible
+          bridge-utils
+          qemu-kvm
+          libvirt-daemon
+          libvirt-clients
+          libvirt-daemon-system
+          virtinst
+          libguestfs-tools
+          whois
+          sshpass
+          virt-manager
+          iproute2
       - DISTRO_NAME: "Fedora Latest"
         DISTRO_CONTAINER: "fedora:latest"
+        PACKAGER: "dnf install -y"
+        PRE_INSTALL: "dnf install -y sudo"
+        PKG_DEPS: |
+          ansible
+          bridge-utils
+          qemu-kvm
+          libvirt-daemon
+          libvirt
+          libvirt-daemon-driver-qemu
+          virt-install
+          libguestfs-tools
+          whois
+          sshpass
+          virt-manager
+          iproute
 
-test-distro:
+setup-distro-deps:
   extends: .parallel-distro-template
-  stage: test
+  stage: deps
   script:
     - echo "Running test on $DISTRO_NAME with container $DISTRO_CONTAINER"
     - uname -a
     - echo "Successfully ran on $DISTRO_NAME"
+
+test-distro-libvirt-bringup:
+  extends: .parallel-distro-template
+  stage: test-libvirt
+  script:
+    - echo "Running tests on $DISTRO_NAME environment with $DISTRO_CONTAINER"
