@@ -8,11 +8,9 @@ stages:
       - DISTRO_NAME: "Debian Testing"
         DISTRO_CONTAINER: "debian:testing"
         PACKAGER: "apt-get install -y"
-        PRE_INSTALL: "apt-get update && apt-get install -y sudo"
       - DISTRO_NAME: "Fedora Latest"
         DISTRO_CONTAINER: "fedora:latest"
-        PACKAGER: "dnf install -y"
-        PRE_INSTALL: "dnf install -y sudo"
+        PACKAGER: "dnf install "
 
 setup-distro-deps:
   extends: .parallel-distro-template
